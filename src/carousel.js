@@ -50,7 +50,7 @@ export default class SideSwipe extends Component<CarouselProps, State> {
     super(props);
 
     const currentIndex: number = props.index || 0;
-    const initialOffset: number = currentIndex * props.itemWidth;
+    const initialOffset: number = (currentIndex * props.itemWidth) - this.props.contentOffset;
     const scrollPosAnim: Animated.Value = new Animated.Value(initialOffset);
     const itemWidthAnim: Animated.Value = new Animated.Value(props.itemWidth);
     const animatedValue: Animated.Value = Animated.divide(
@@ -75,6 +75,28 @@ export default class SideSwipe extends Component<CarouselProps, State> {
     });
   };
 
+  scrollToIndex(contentOffset, index){
+    this.setState(
+      () => ({ currentIndex: index }),
+      () => {
+        setTimeout(() =>
+          this.list.scrollToIndex({
+            animated: true,
+            index: this.state.currentIndex,
+            viewOffset: contentOffset,
+          }),
+        );
+      }, );
+  }
+
+  componentDidMount = (): void => {
+    const { contentOffset, index } = this.props;
+
+    if(index >  0){
+      this.scrollToIndex(contentOffset, index)
+    }
+  }
+
   componentDidUpdate = (prevProps: CarouselProps) => {
     const { contentOffset, index, itemWidth } = this.props;
 
@@ -83,18 +105,7 @@ export default class SideSwipe extends Component<CarouselProps, State> {
     }
 
     if (Number.isInteger(index) && index !== prevProps.index) {
-      this.setState(
-        () => ({ currentIndex: index }),
-        () => {
-          setTimeout(() =>
-            this.list.scrollToIndex({
-              animated: true,
-              index: this.state.currentIndex,
-              viewOffset: contentOffset,
-            }),
-          );
-        },
-      );
+      this.scrollToIndex(contentOffset, index)
     }
   };
 
